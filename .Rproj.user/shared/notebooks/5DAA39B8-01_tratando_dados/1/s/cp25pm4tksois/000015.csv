@@ -1,0 +1,8 @@
+"0",""
+"0","consulta_pop <- 'SELECT * FROM ""Analytics Layer"".Territorial.""População SVS por região de saúde - ABEFACO-Daniel"""
+"0","WHERE ANO = 2021'"
+"0",""
+"0","df_pop <- sqlQuery(channel, consulta_pop) %>% "
+"0","          janitor::clean_names()"
+"0",""
+"0","DT::datatable(df_pop)"
