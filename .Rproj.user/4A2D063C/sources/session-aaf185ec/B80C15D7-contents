@@ -35,6 +35,41 @@ channel <- odbcDriverConnect(sprintf("DRIVER=Dremio Connector;HOST=%s;PORT=%s;UI
 
 ```
 
+```{r}
+#| warning: false
+
+library(tidyverse)
+library(readxl)
+library(RODBC)
+
+```
+
+Para o presente estudo de caso, vamos acessar apenas regiões de saúde do estado da Bahia. 
+
+# Projeções de Nascidos para 2024
+
+```{r}
+#| warning: false
+
+projecoes_BA <- read_excel("nascidos_BA_PBI.xlsx") %>% 
+                    mutate(ano = year(mes_ano)) %>% 
+                    filter(ano == 2024) %>% 
+                    group_by(uf_sigla, cod_regsaud, 
+                             regiao_saude_pad, ano) %>% 
+                    summarise(quantidade = sum(quantidade))
+
+c <- projecoes_BA %>% 
+  ggplot(aes(x = fct_reorder(regiao_saude_pad, quantidade), y = quantidade)) + geom_col() + coord_flip() + xlab("Região de saúde") + ylab("Quantidade de nascidos") + theme_minimal() + 
+  ggtitle("Total de nascidos vivos por região de saúde","Projeções para 2024")
+
+plotly::ggplotly(c)
+
+```
+*Observação:* Todos os nascidos precisam de vacinação. 
+
+Pressuposto: As gestantes precisarão de vacinação. Via de regra, são realizadas no primeiro trimestre da gestação. Portanto, aquelas gestantes que deram a luz no início de 2024 já teriam sido vacinadas em 2023. No entanto, também temos as gestantes de 2025 que ocuparão a demanda no final de 2024 e podemos não computar. Vamos contabilizar todas as gestantes de 2024.   
+
+
 # Acessando os dados - SVS
 
 Vamos acessar as projeções populacionais da Secretaria de Vigilância em Saúde. Ainda que seja um dado de 2021, precisaremos deles para estimar o tamanho da população adulta. 
@@ -89,10 +124,12 @@ sinasc_1720 <- sqlQuery(channel, consulta_sinasc) %>%
 A população de nascidos em todo o Brasil foi a seguinte. 
 
 ```{r}
-b <- sinasc_2017 %>% 
-  ggplot(aes(x = ano, y = quantidade)) + geom_col() + 
-  xlab("Ano") + ylab("Quantidade") +
-  theme_minimal()
+b <- sinasc_1720 %>% 
+  filter(uf_sigla == "BA") %>% 
+  group_by(uf_sigla, cod_regsaud, regiao_saude_pad, ano) %>%
+  summarise(quantidade = sum(quantidade)) %>% 
+  ggplot(aes(x = ano, y = quantidade, col = regiao_saude_pad)) + 
+  geom_line() + xlab("Ano") + ylab("Quantidade") + theme_minimal()
 
 plotly::ggplotly(b)
 

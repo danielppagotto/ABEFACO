@@ -2,7 +2,7 @@
 "0","consulta_sinasc <- 'SELECT * FROM ""Analytics Layer"".""Epidemiológico"".Nascimentos.""Nascidos Vivos por Região de Saúde"""
 "0","where cast(ano as INT) >= 2017 AND cast(ano as INT) < 2020'"
 "0",""
-"0","sinasc_2017 <- sqlQuery(channel, consulta_sinasc) %>% "
+"0","sinasc_1720 <- sqlQuery(channel, consulta_sinasc) %>% "
 "0","               janitor::clean_names()"
 "0",""
 "0",""
