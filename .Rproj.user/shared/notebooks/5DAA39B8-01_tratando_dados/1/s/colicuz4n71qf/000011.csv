@@ -1,3 +1,4 @@
+"0","#| warning: false"
 "0",""
 "0","consulta_sinasc <- 'SELECT * FROM ""Analytics Layer"".""Epidemiológico"".Nascimentos.""Nascidos Vivos por Região de Saúde"""
 "0","where (cast(ano as INT) >= 2018 AND cast(ano as INT) < 2021)'"
