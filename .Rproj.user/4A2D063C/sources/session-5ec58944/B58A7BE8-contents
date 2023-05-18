@@ -142,7 +142,7 @@ qtd_4_6 <-
 Pressuposto: o número de crianças de 4 a 6 anos é o total de crianças que nasceram em 2018, 2019 e 2020. Portanto, desprezamos os óbitos e eventuais mudanças para outras localidades. 
 
 
-# População 
+# População de 9 a 19 anos, 20 a 59 anos e 60 anos ou mais
 
 Vamos acessar as projeções populacionais da Secretaria de Vigilância em Saúde. Ainda que seja um dado de 2021, não temos nenhuma base a nível região de saúde (ou município) dividida por faixa etária. 
 
