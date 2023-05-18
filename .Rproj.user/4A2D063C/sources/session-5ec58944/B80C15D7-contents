@@ -48,8 +48,17 @@ Para o presente estudo de caso, vamos acessar apenas regiões de saúde do estad
 
 # Projeções de Nascidos para 2024
 
+Temos um total de nascidos de 
+
 ```{r}
 #| warning: false
+
+previsoes_go <- read_excel("00_bases/previsoes_go.xlsx", 
+                           col_types = c("text", "numeric", "numeric", 
+                                         "numeric", "text", "numeric", "date")) %>% 
+                mutate(ano = year(data))
+
+
 
 projecoes_BA <- read_excel("nascidos_BA_PBI.xlsx") %>% 
                     mutate(ano = year(mes_ano)) %>% 
