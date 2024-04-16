@@ -13,9 +13,11 @@ O planejamento da força de trabalho em saúde são funções estratégicas de "
 
 -   O método Workload Indicator of Staffing Needs (WISN) proposto pela Organização Mundial de Saúde (OMS) e adaptado por Bonfim para APS como método de cálculo.
 
-O racional abaixo mostra a lógica do estudo. 
+O racional abaixo mostra a lógica do estudo.
 
-<iframe src="https://cawemo.com/embed/cdf3dcbb-3239-43c1-b734-9eb055a6d9e8" style="width:700px;height:350px;border:1px solid #ccc" allowfullscreen></iframe>
+<iframe src="https://cawemo.com/embed/cdf3dcbb-3239-43c1-b734-9eb055a6d9e8" style="width:700px;height:350px;border:1px solid #ccc" allowfullscreen>
+
+</iframe>
 
 ```{r}
 #| warning: false
@@ -44,19 +46,19 @@ library(RODBC)
 
 ```
 
-Para o presente estudo de caso, vamos acessar apenas regiões de saúde do estado de Goiás, tendo em vista que é um dos estados que tivemos os melhores resultados em termos das previsões.  
+Para o presente estudo de caso, vamos acessar apenas regiões de saúde do estado de Goiás, tendo em vista que é um dos estados que tivemos os melhores resultados em termos das previsões.
 
 # Fonte dos dados
 
-Vamos trabalhar com duas fontes de dados: 
+Vamos trabalhar com duas fontes de dados:
 
-- previsões de nascidos vivos para acessar dados da população gestantes, menores que 1 ano e bebês com 15 meses;
-- Sistema de Nascidos vivos para acessar a população de 4 a 6 anos;
-- Projeções populacionais da Secretaria de Vigilância em Saúde (SVS-MS).
+-   previsões de nascidos vivos para acessar dados da população gestantes, menores que 1 ano e bebês com 15 meses;
+-   Sistema de Nascidos vivos para acessar a população de 4 a 6 anos;
+-   Projeções populacionais da Secretaria de Vigilância em Saúde (SVS-MS).
 
-# Menores que um ano de idade 
+# Menores que um ano de idade
 
-Temos uma previsão de 98.810 nascidos em todas as regiões de saúde de Goiás em 2024. 
+Temos uma previsão de 98.810 nascidos em todas as regiões de saúde de Goiás em 2024.
 
 ```{r}
 #| warning: false
@@ -79,10 +81,9 @@ qtd_nascidos_go <- previsoes_go %>%
 
 # População de 15 meses
 
-Esta população é formada por todas as crianças que estão completando 15 meses em 2024. Portanto, uma criança que completa 15 meses em janeiro/24 é uma criança que nasceu em outubro/22. Quem completa 15 meses em fevereiro/24 nasceu em novembro/22 e assim sucessivamente. Quem completa 15 meses em dezembro/24 nasceu em setembro/23. 
+Esta população é formada por todas as crianças que estão completando 15 meses em 2024. Portanto, uma criança que completa 15 meses em janeiro/24 é uma criança que nasceu em outubro/22. Quem completa 15 meses em fevereiro/24 nasceu em novembro/22 e assim sucessivamente. Quem completa 15 meses em dezembro/24 nasceu em setembro/23.
 
-Portanto, temos que pegar **todos os nascidos entre outubro de 2022 e setembro de 2023**. Ainda utilizaremos as projeções, pois não temos dados definitivos do SINASC para 2022 e 2023. 
-
+Portanto, temos que pegar **todos os nascidos entre outubro de 2022 e setembro de 2023**. Ainda utilizaremos as projeções, pois não temos dados definitivos do SINASC para 2022 e 2023.
 
 ```{r}
 #| warning: false
@@ -97,13 +98,13 @@ qtd_15_meses <-
 
 ```
 
-Pressuposto: Não consideramos migrações entre regiões de saúde e mortalidade das crianças nesse intervalo de tempo. 
+Pressuposto: Não consideramos migrações entre regiões de saúde e mortalidade das crianças nesse intervalo de tempo.
 
 # Gestantes
 
-Esta população é formada por gestantes em 2024. Os procedimentos de vacinação ocorrem no primeiro trimestre de gestação. Portanto, as mães dos nascidos vivos de Setembro de 2024 devem recorrer ao serviço de saúde em nos primeiros meses do ano. Vamos utilizar janeiro como referência. De modo semelhante, as gestantes que terão filhos em agosto de 2025, irão acionar os serviços de saúde em 12/2024. 
+Esta população é formada por gestantes em 2024. Os procedimentos de vacinação ocorrem no primeiro trimestre de gestação. Portanto, as mães dos nascidos vivos de Setembro de 2024 devem recorrer ao serviço de saúde em nos primeiros meses do ano. Vamos utilizar janeiro como referência. De modo semelhante, as gestantes que terão filhos em agosto de 2025, irão acionar os serviços de saúde em 12/2024.
 
-Portanto, vamos pegar **todos os nascidos entre setembro de 2024 a agosto de 2025**.  
+Portanto, vamos pegar **todos os nascidos entre setembro de 2024 a agosto de 2025**.
 
 ```{r}
 
@@ -120,7 +121,7 @@ Pressuposto: Estamos tomando como referência uma base de nascidos vivos. Temos 
 
 # População de 4 a 6 anos
 
-Vamos acessar os dados do SINASC de 2018 a 2020 para determinar a quantidade de crianças de 4 a 6 anos. 
+Vamos acessar os dados do SINASC de 2018 a 2020 para determinar a quantidade de crianças de 4 a 6 anos.
 
 ```{r}
 #| warning: false
@@ -139,12 +140,11 @@ qtd_4_6 <-
 
 ```
 
-Pressuposto: o número de crianças de 4 a 6 anos é o total de crianças que nasceram em 2018, 2019 e 2020. Portanto, desprezamos os óbitos e eventuais mudanças para outras localidades. 
-
+Pressuposto: a quantidade de 4 a 6 anos é o total de crianças que nasceram em 2018, 2019 e 2020. Portanto, desprezamos os óbitos e eventuais mudanças para outras localidades.
 
 # População de 9 a 19 anos, 20 a 59 anos e 60 anos ou mais
 
-Vamos acessar as projeções populacionais da Secretaria de Vigilância em Saúde. Ainda que seja um dado de 2021, não temos nenhuma base a nível região de saúde (ou município) dividida por faixa etária. 
+Vamos acessar as projeções populacionais da Secretaria de Vigilância em Saúde. Ainda que seja um dado de 2021, não temos nenhuma base a nível região de saúde (ou município) dividida por faixa etária.
 
 ```{r}
 
@@ -155,12 +155,65 @@ df_pop <- sqlQuery(channel, consulta_pop) %>%
           janitor::clean_names() %>% 
           filter(uf == "Goiás") %>% 
           filter(faixa_etaria != "0 a 9") %>% 
-          select(-ano, regiao_saude)
+          select(-ano, -regiao_saude, -uf) %>% 
+          spread(faixa_etaria, pop)
 
 DT::datatable(df_pop)
 
 ```
 
+# Juntando todas as bases para o PowerBI
+
+```{r}
 
 
+basepbi_spread <- 
+  qtd_nascidos_go %>% 
+  left_join(qtd_gestantes, by = "codibge") %>% 
+  left_join(qtd_15_meses, by = "codibge") %>% 
+  left_join(qtd_4_6, by = c("codibge"="cod_regsaud")) %>% 
+  left_join(df_pop, by = c("codibge"="cod_regsaud")) %>% 
+  relocate(regiao_saude_pad, .after = codibge) %>% 
+  select(-uf_sigla)
+
+basepbi_gather <- 
+  basepbi_spread %>% 
+    gather(key = "publico", value = "quantidade",
+           4:10) 
+
+#writexl::write_xlsx(basepbi_gather, "pbi_abefaco_g.xlsx")
+#writexl::write_xlsx(basepbi_spread, "pbi_abefaco_s.xlsx")
+
+
+```
+# Consulta oferta
+
+```{r}
+
+consulta_oferta <- 'SELECT * FROM "Analytics Layer".Infraestrutura.Profissionais."Profissionais APS - técnicos e auxiliares de enfermagem"'
+
+oferta <- sqlQuery(channel, consulta_oferta)
+```
+
+Tratando dados de oferta 
+
+```{r}
+
+oferta_tratada <- 
+  oferta %>% 
+  mutate(ano = as.character(COMPETEN)) %>% 
+  mutate(ano = substr(ano, 1, 4)) %>% 
+  filter(ano == '2022') %>% 
+  mutate(horas = HORAOUTR + HORAHOSP + HORA_AMB) %>% 
+  group_by(uf, cod_regsaud, regiao_saude,
+           ano) %>% 
+  summarise(horas_oferta = sum(horas)) %>% 
+  mutate(fte40 = horas_oferta/126)
+
+```
+```{r}
+#writexl::write_xlsx(oferta_tratada, "oferta_fts_abefaco.xlsx")
+
+
+```
 
