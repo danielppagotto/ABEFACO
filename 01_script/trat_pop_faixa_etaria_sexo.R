@@ -48,4 +48,6 @@ pop_rj_h_pivot <- pop_rj_h %>%
 
 pop_rj <- bind_rows(pop_rj_h_pivot, pop_rj_m_pivot)
 
+writexl::write_xlsx(pop_rj,"pop_rj_tratado.xlsx")
+
 
