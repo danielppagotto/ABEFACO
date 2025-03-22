@@ -1,8 +1,0 @@
-"0",""
-"0","qtd_gestantes <- "
-"0","  previsoes_go %>% "
-"0","  mutate(mes = month(data)) %>% "
-"0","  filter(data > ""2024-08-01"" & data <= ""2025-08-01"") %>% "
-"0","  group_by(codibge) %>% "
-"0","  summarise(qtd_gestantes = round(sum(qtd)))"
-"0",""
