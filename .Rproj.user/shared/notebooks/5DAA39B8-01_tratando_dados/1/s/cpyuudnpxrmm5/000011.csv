@@ -1,6 +1,0 @@
-"0",""
-"0","qtd_nascidos_go <- previsoes_go %>% "
-"0","                  filter(ano == 2024) %>% "
-"0","                  group_by(Estado, codibge) %>% "
-"0","                  summarise(qtd_nascidos = round(sum(qtd)))"
-"2","`summarise()` has grouped output by 'Estado'. You can override using the `.groups` argument."
