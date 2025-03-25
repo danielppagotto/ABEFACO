@@ -7,14 +7,25 @@
 #    https://shiny.posit.co/
 #
 
+#install.packages("leaflet")
+
+#Pacotes necessarios 
 library(shiny)
 library(scales)
+library(DT)
+library(leaflet)
+library(sf)
+library(dplyr)
+library(RColorBrewer)
 
-pop_rj_filtrado
-pop_rj
-oferta_prof_pivot
 
-# Define UI for application that draws a histogram
+#Dataframes utilizados, todos tratados no script trat_pop_faixa_etaria_sexo 
+
+pop_rj # tem os dados da populacao por faixa etaria e sexo do ibge, ja com as colunas empilhadas 
+pop_rj_filtrado # tem as faixa etaria de acordo com a planilha de vacinacao
+oferta_prof_pivot # dataframe do datalake tratado, com a coluna de enfermeiros e tec/aux
+
+# Define UI for application 
 ui <- fluidPage(
 
     # Application title
@@ -25,12 +36,12 @@ ui <- fluidPage(
     tabPanel("População por município, sexo e faixa etária",
     sidebarLayout(
         sidebarPanel(
-          
+          #Parametros de visualizacao da selecao e dos sliders, titulo,escala,como inicia ao abrir o app...
           selectInput("municipio", 
                       "Selecione os municípios:",
                       choices = c("Todos", unique(pop_rj$municipio)),  
                       selected = "Todos", 
-                      multiple = TRUE),
+                      multiple = TRUE), #pode escolher varias opcoes
                       
           selectInput("faixa_et", 
                       "Selecione os faixa etária:",
@@ -50,9 +61,9 @@ ui <- fluidPage(
                         value = 80)
         ),
 
-        # Show a plot of the generated distribution
+        # Show table
         mainPanel(
-          tableOutput("tabela1")
+          DTOutput("tabela1")
         )
     )
 ),
@@ -60,7 +71,7 @@ ui <- fluidPage(
       tabPanel("Taxa de vacinação por município, sexo e faixa etária",
          sidebarLayout(
            sidebarPanel(
-             
+             #Parametros de visualizacao da selecao e dos sliders, titulo,escala,como inicia ao abrir o app...
              selectInput("municipio", 
                          "Selecione os municípios:",
                          choices = c("Todos", unique(pop_rj_filtrado$municipio)),  
@@ -164,19 +175,19 @@ ui <- fluidPage(
             
            ),
              mainPanel(
-               tableOutput("tabela2") 
+               DTOutput("tabela2") 
          )
       )
   ),
     tabPanel("Tempo de vacinação",
              sidebarLayout(
                sidebarPanel(
-                 
+                 #Parametros de visualizacao da selecao e dos sliders, titulo,escala,como inicia ao abrir o app...
                  selectInput("municipio", 
                              "Selecione os municípios:",
                              choices = c("Todos", unique(pop_rj_filtrado$municipio)),  
                              selected = "Todos", 
-                             multiple = TRUE),
+                             multiple = TRUE), 
                  selectInput("sexo", 
                              "Selecione o sexo:",
                              choices = c("Todos", unique(pop_rj_filtrado$sexo)),  
@@ -281,14 +292,14 @@ ui <- fluidPage(
                  
                ),
                mainPanel(
-                 tableOutput("tabela3") 
+                 DTOutput("tabela3") 
            )
       )
 ),
          tabPanel("Necessidades",
          sidebarLayout(
            sidebarPanel(
-             
+             #Parametros de visualizacao da selecao e dos sliders, titulo,escala,como inicia ao abrir o app...
              selectInput("municipio", 
                          "Selecione os municípios:",
                          choices = c("Todos", unique(pop_rj_filtrado$municipio)),  
@@ -302,15 +313,15 @@ ui <- fluidPage(
 
            ),
            mainPanel(
-             tableOutput("tabela4") 
+             DTOutput("tabela4") 
            )
       )
 ),
          
-         tabPanel("Oferta",
+      tabPanel("Oferta",
          sidebarLayout(
            sidebarPanel(
-             
+             #Parametros de visualizacao da selecao e dos sliders, titulo,escala,como inicia ao abrir o app...
              selectInput("municipio", 
                          "Selecione os municípios:",
                          choices = c("Todos", unique(pop_rj_filtrado$municipio)),  
@@ -320,33 +331,46 @@ ui <- fluidPage(
                          "Atividade indireta:",
                          min = 0,
                          max = 100,
-                         value = 80),
+                         value = 40),
              sliderInput("fc_clinico",
                          "Foco clínico:",
                          min = 0,
                          max = 100,
-                         value = 80),
+                         value = 10),
              
            ),
            mainPanel(
-             tableOutput("tabela5")  
+             DTOutput("tabela5"),
+           )
+     )
+),
+      tabPanel("Mapas",
+          #sidebarLayout(
+          #sidebarPanel(
+        
+            mainPanel(
+            fluidRow(
+              column(10, tags$h4("Enfermeiros"),leafletOutput("mapa1", height = 500, width = 900)), #mapa 1
              
-             
-             
+              column(10, tags$h4("Técnico e Auxiliar de Enfermagem"),leafletOutput("mapa2", height = 500,width = 900)) #mapa 2
+            
              
 )))))
 
-# Define server logic required to draw a histogram
+
+#-------------------------------------
 server <- function(input, output) {
   
+  #Essa funcao serve para integrar as tabelas nas outras abas e fazer com que mudando uma, modifique a proxima aba
   dados_reativos <- reactiveVal()
   dados_reativos2 <- reactiveVal()
+  dados_reativos3 <- reactiveVal()
   
  
 
-  output$tabela1 <- renderTable({
+  output$tabela1 <- renderDT({
   
-    
+    #Definindo os parametros da parte do filtro dos municipios, do sexo e da faixa etaria
     if ("Todos" %in% input$municipio) {
       pop_shy <- pop_rj  
     } else {
@@ -367,18 +391,23 @@ server <- function(input, output) {
       pop_shy <- subset(pop_shy, sexo %in% input$sexo)  
     }
     
+    #Calculo do slider da populacao
     pop_shy$populacao <- pop_shy$populacao * (1 + input$percentual / 100)
     
-    pop_shy%>%
+    pop_shy%>% #retirando o cod_ibge da visualizacao da tabela
       select(-cod_ibge)
+    
+    datatable(pop_shy) %>% # Diminuindo a casas decimais das colunas
+      formatRound(columns = c("populacao"), digits = 2)
+    
     
   })
   
-  output$tabela2 <- renderTable({
+  output$tabela2 <- renderDT({
     
-    
+    #Definindo os parametros da parte do filtro dos municipios e do sexo
     if ("Todos" %in% input$municipio) {
-      pop_shy2 <- pop_rj_filtrado 
+      pop_shy2 <- pop_rj_filtrado #esse data frame pop_rj_filtrado tem as faixa etarias filtradas de acordo com a planilha de vacinas 
     } else {
       pop_shy2 <- subset(pop_rj_filtrado, municipio %in% input$municipio) 
       
@@ -392,11 +421,11 @@ server <- function(input, output) {
     }
     
     
-    
+    #calculo do slider da populacao
     pop_shy2$populacao <- pop_shy2$populacao * (1 + input$percentual_pop / 100)
     
     
-    
+    #Fazendo a coluna com os nomes das vacinas referentes a cada uma das faixas etarias que devem tomar
     pop_shy2$vacinas <- ifelse(pop_shy2$faixa_etaria == "Menos de 1 mês", "BCG e Hepatite B",
                                             ifelse(pop_shy2$faixa_etaria == "2 meses", "1Penta,Poliomielite VIP,Pneumo 10v,VRH",
                                                    ifelse(pop_shy2$faixa_etaria == "4 meses","2Penta,Poliomielite VIP,Pneumo 10v,VRH",
@@ -413,10 +442,10 @@ server <- function(input, output) {
                                                                                                                                 ifelse(pop_shy2$faixa_etaria == "14 anos","4Meningo ACWY,HPV4",
                                                                                                                                        
                                                                                                                          
-                                                                                                                                ifelse(pop_shy2$faixa_etaria == "7 meses","1Covid- 19",
-                                                                                                                                       ifelse(pop_shy2$faixa_etaria == "9 meses","Covid- 19,VFA",
-                                                                                                                                              ifelse(pop_shy2$faixa_etaria == "7 anos","dt/Dupla Adulto", 0)))))))))))))))))
-    
+                                                                                                                                      ifelse(pop_shy2$faixa_etaria == "7 meses","1Covid- 19",
+                                                                                                                                            ifelse(pop_shy2$faixa_etaria == "9 meses","Covid- 19,VFA",
+                                                                                                                                                  ifelse(pop_shy2$faixa_etaria == "7 anos","dt/Dupla Adulto", 0)))))))))))))))))
+    #Fazendo a coluna imunizacao e fazendo o slider para cada grupo de vacinas 
     pop_shy2$imunizacao <- 0
     pop_shy2$imunizacao[pop_shy2$vacinas == "BCG e Hepatite B"] <- pop_shy2$populacao[pop_shy2$vacinas == "BCG e Hepatite B"] * (input$percentual_1 / 100)
     pop_shy2$imunizacao[pop_shy2$vacinas == "1Penta,Poliomielite VIP,Pneumo 10v,VRH"] <- pop_shy2$populacao[pop_shy2$vacinas == "1Penta,Poliomielite VIP,Pneumo 10v,VRH"] * (input$percentual_2 / 100)
@@ -438,15 +467,19 @@ server <- function(input, output) {
     
     
     
-    pop_shy2%>%
+    pop_shy2%>% #retirando o cod_ibge da visualizacao da tabela
       select(-cod_ibge)
+    
+    datatable(pop_shy2) %>% # Diminuindo a casas decimais das colunas
+      formatRound(columns = c("populacao","imunizacao"), digits = 2)
+    
     
     
   })
     
-    output$tabela3 <- renderTable({
+    output$tabela3 <- renderDT({
       
-      
+      #Definindo os parametros da parte do filtro dos municipios e do sexo
       if ("Todos" %in% input$municipio) {
         pop_shy3 <- pop_rj_filtrado 
       } else {
@@ -462,10 +495,10 @@ server <- function(input, output) {
       }
       
       
-      
+      #calculo do slider da populacao
       pop_shy3$populacao <- pop_shy3$populacao * (1 + input$percentual_pop / 100)
       
-      
+      #Fazendo a coluna com os nomes das vacinas referentes a cada uma das faixas etarias que devem tomar
       pop_shy3$vacinas <- ifelse(pop_shy3$faixa_etaria == "Menos de 1 mês", "BCG e Hepatite B",
                                  ifelse(pop_shy3$faixa_etaria == "2 meses", "1Penta,Poliomielite VIP,Pneumo 10v,VRH",
                                         ifelse(pop_shy3$faixa_etaria == "4 meses","2Penta,Poliomielite VIP,Pneumo 10v,VRH",
@@ -476,15 +509,15 @@ server <- function(input, output) {
                                                                            ifelse(pop_shy3$faixa_etaria == "5 meses","2Meningo C",
                                                                                   ifelse(pop_shy3$faixa_etaria == "9 anos","1HPV4",
                                                                                          ifelse(pop_shy3$faixa_etaria == "10 anos","2HPV4",
-                                                                                  ifelse(pop_shy3$faixa_etaria == "11 anos","1Meningo ACWY,HPV4",
-                                                                                         ifelse(pop_shy3$faixa_etaria == "12 anos","2Meningo ACWY,HPV4",
-                                                                                                ifelse(pop_shy3$faixa_etaria == "13 anos","3Meningo ACWY,HPV4",
-                                                                                                       ifelse(pop_shy3$faixa_etaria == "14 anos","4Meningo ACWY,HPV4",
+                                                                                               ifelse(pop_shy3$faixa_etaria == "11 anos","1Meningo ACWY,HPV4",
+                                                                                                      ifelse(pop_shy3$faixa_etaria == "12 anos","2Meningo ACWY,HPV4",
+                                                                                                            ifelse(pop_shy3$faixa_etaria == "13 anos","3Meningo ACWY,HPV4",
+                                                                                                                  ifelse(pop_shy3$faixa_etaria == "14 anos","4Meningo ACWY,HPV4",
                                                                                                               
-                                                                                                              ifelse(pop_shy3$faixa_etaria == "7 meses","1Covid- 19",
-                                                                                                                     ifelse(pop_shy3$faixa_etaria == "9 meses","Covid- 19,VFA",
-                                                                                                                            ifelse(pop_shy3$faixa_etaria == "7 anos","dt/Dupla Adulto",0)))))))))))))))))
-      
+                                                                                                                        ifelse(pop_shy3$faixa_etaria == "7 meses","1Covid- 19",
+                                                                                                                              ifelse(pop_shy3$faixa_etaria == "9 meses","Covid- 19,VFA",
+                                                                                                                                    ifelse(pop_shy3$faixa_etaria == "7 anos","dt/Dupla Adulto",0)))))))))))))))))
+      #Fazendo a coluna imunizacao e fazendo o slider para cada grupo de vacinas 
       pop_shy3$imunizacao <- 0
       pop_shy3$imunizacao[pop_shy3$vacinas == "BCG e Hepatite B"] <- pop_shy3$populacao[pop_shy3$vacinas == "BCG e Hepatite B"] * (input$percentual_1 / 100)
       pop_shy3$imunizacao[pop_shy3$vacinas == "1Penta,Poliomielite VIP,Pneumo 10v,VRH"] <- pop_shy3$populacao[pop_shy3$vacinas == "1Penta,Poliomielite VIP,Pneumo 10v,VRH"] * (input$percentual_2 / 100)
@@ -504,27 +537,31 @@ server <- function(input, output) {
       pop_shy3$imunizacao[pop_shy3$vacinas == "Covid- 19,VFA"] <- pop_shy3$populacao[pop_shy3$vacinas == "Covid- 19,VFA"] * (input$percentual_16 / 100)
       pop_shy3$imunizacao[pop_shy3$vacinas == "dt/Dupla Adulto"] <- pop_shy3$populacao[pop_shy3$vacinas == "dt/Dupla Adulto"] * (input$percentual_17 / 100)
       
-      
+      #Fazendo a coluna de minutos 
       pop_shy3$tempo_minutos <- pop_shy3$imunizacao * input$percentual_tempo 
       
-      pop_shy3$tempo_horas <- pop_shy3$tempo_minutos / 60
+      pop_shy3$tempo_horas <- pop_shy3$tempo_minutos / 60 #transformando a coluna minutos em horas
       
-      dados_reativos(pop_shy3)
+      dados_reativos(pop_shy3) #acionando os dados_reativos antes de retirar o cod_ibge pq vais ser necessario para o leftjoin da proxima aba
       
-      pop_shy3_2 <- pop_shy3%>%
+      pop_shy3_2 <- pop_shy3%>% #retirando o cod_ibge da visualizacao da tabela
         select(-cod_ibge)
       
       
       pop_shy3_2
+      
+      datatable(pop_shy3_2) %>% # Diminuindo a casas decimais das colunas
+        formatRound(columns = c("populacao","imunizacao","tempo_minutos","tempo_horas"), digits = 2)
   })
     
       
-    output$tabela4 <- renderTable({
+    output$tabela4 <- renderDT({
       req(dados_reativos())  
       dados_reativos()
    
       pop_shy4 <- dados_reativos()
       
+      #Definindo os parametros da parte do filtro dos municipios
       if ("Todos" %in% input$municipio) {
         pop_shy4<- pop_shy4
       } else {
@@ -532,7 +569,7 @@ server <- function(input, output) {
         
       }
       
-
+      #Fazendo a coluna de necessidades e total_horas
       pop_shy4_2 <- pop_shy4%>%
         group_by(cod_ibge, municipio) %>%
         summarise(total_horas = sum(tempo_horas), necessidades = total_horas/ input$ttd) 
@@ -541,35 +578,118 @@ server <- function(input, output) {
       pop_shy4_2_1 <- pop_shy4_2 %>%
         ungroup()
       
-      dados_reativos2(pop_shy4_2_1)
+      dados_reativos2(pop_shy4_2_1)#acionando os dados_reativos antes de retirar o cod_ibge pq vais ser necessario para o leftjoin da proxima aba
 
       
-      pop_shy4_3 <- pop_shy4_2_1%>%
+      pop_shy4_3 <- pop_shy4_2_1%>% #retirando o cod_ibge da visualizacao da tabela
         select(-cod_ibge)
       
       pop_shy4_3
       
+      datatable(pop_shy4_3) %>% # Diminuindo a casas decimais das colunas
+        formatRound(columns = c("total_horas","necessidades"), digits = 2)
+      
     })
     
-    output$tabela5 <- renderTable({
+    output$tabela5 <- renderDT({
       req(dados_reativos2())
       
       pop_shy0 <- dados_reativos2() 
 
+      #tranformando no mesmo tipo a coluna do codigo para o lefjoin
       oferta_prof_pivot$codufmun<- as.character(oferta_prof_pivot$codufmun)
       
+      #juntando a tabela da aba anterior com a importada do data_lake, ja tratada no script
       pop_shy5 <- left_join(pop_shy0 , oferta_prof_pivot, by = c("cod_ibge"="codufmun"))
       
-      pop_shy5$oferta_enfermeiro <- pop_shy5$fte40_Enfermeiro - pop_shy5$necessidades 
-      pop_shy5$oferta_tec_aux_enfermagem <- pop_shy5$fte40_tec_aux_enfermagem - pop_shy5$necessidades 
+      #Fazendo a coluna de resultado enfermeiro e resultado Tec. e Aux
+      pop_shy5$resultado_enfermeiro <- pop_shy5$fte40_Enfermeiro - pop_shy5$necessidades 
+      pop_shy5$resultado_tec_aux_enfermagem <- pop_shy5$fte40_tec_aux_enfermagem - pop_shy5$necessidades
       
-      pop_shy5 <- pop_shy5%>%
+      #Fazendo a coluna de percentual de enfermeiro e de Tec. e Aux
+      pop_shy5$resultado_perc_enfermeiro <- (pop_shy5$fte40_Enfermeiro/pop_shy5$necessidades)*100
+      pop_shy5$resultado_perc_tec_aux_enfermagem <- (pop_shy5$fte40_tec_aux_enfermagem/pop_shy5$necessidades)*100
+      
+      #Trocando o nome da coluna para incluir o nome oferta
+      colnames(pop_shy5)[colnames(pop_shy5) == "fte40_Enfermeiro"] <- "oferta_Enfermeiro"
+      colnames(pop_shy5)[colnames(pop_shy5) == "fte40_tec_aux_enfermagem"] <- "oferta_tec_aux_enfermagem"
+      
+      #Definindo os paramentros dos sliders de atividade indireta e foco clinico 
+      pop_shy5$resultado_enfermeiro <- pop_shy5$resultado_enfermeiro - input$at_ind
+      pop_shy5$resultado_enfermeiro <- pop_shy5$resultado_enfermeiro - input$fc_clinico
+      
+      pop_shy5$resultado_tec_aux_enfermagem <- pop_shy5$resultado_tec_aux_enfermagem - input$at_ind
+      pop_shy5$resultado_tec_aux_enfermagem <- pop_shy5$resultado_tec_aux_enfermagem - input$fc_clinico
+      
+      
+      dados_reativos3(pop_shy5) #acionando os dados_reativos antes de retirar o cod_ibge pq vais ser necessario para o leftjoin da proxima aba
+      
+      pop_shy5_1<- pop_shy5%>% #retirando o cod_ibge da visualizacao da tabela e retirando a duplicada depois do lefjoin
         rename(municipio = municipio.x)%>%
         select(-municipio.y, -cod_ibge)
       
-      pop_shy5
+      datatable(pop_shy5_1) %>% # Diminuindo a casas decimais das colunas
+        formatRound(columns = c("total_horas","necessidades","resultado_enfermeiro","resultado_tec_aux_enfermagem","resultado_perc_enfermeiro","resultado_perc_tec_aux_enfermagem"), digits = 2)
       
-    })  
+      
+    })   #Parametros do mapa 1
+      
+      output$mapa1 <- renderLeaflet({
+        
+        req(dados_reativos3())
+        
+        pop_shy6 <- dados_reativos3() 
+        
+        #juntando o dataframe com os shapefile e o dataframe com os dados de oferta e necessidade da aba anterior
+        rio <- RJ2 %>% left_join(pop_shy6, by = c("CD_MUN"="cod_ibge"))
+        print(head(rio))
+        
+        #Definindo os dados da paleta de cor, bins = quantidade do intervalo dos dados, domain= coluna dos dados
+        paletacor <- colorBin("RdYlGn", domain = rio$resultado_enfermeiro, bins = 5)  
+        
+        leaflet(data = rio) %>%
+          addTiles() %>%
+          addPolygons(
+            fillColor = ~paletacor(resultado_enfermeiro),#cores do municipio de acordo com a funcao paletacor e dados da coluna indicada
+            weight = 1, #espessura das linhas 
+            color = "black", #cor das linhas em volta dos municipios
+            fillOpacity = 0.6, #opacidade da cor dos municipios
+            label = ~paste0(NM_MUN, ": ", round(resultado_enfermeiro, 1), " Enfermeiros"), #dados que aparecem no quadro quando passa o mouse 
+            highlight = highlightOptions(weight = 3, color = "white", bringToFront = TRUE)#parametros de quando o municipio e destacado ao passar o mouse
+          ) %>%
+          addLegend(pal = paletacor, values = rio$resultado_enfermeiro, opacity = 0.5, title = "Legenda")#parametros da legenda 
+      
+      
+    })  #Parametros do mapa 2
+      
+      output$mapa2 <- renderLeaflet({
+        
+        req(dados_reativos3())
+        
+        pop_shy7 <- dados_reativos3() 
+        
+        
+        rio2 <- RJ2 %>% left_join(pop_shy7, by = c("CD_MUN"="cod_ibge"))
+        print(head(rio2))
+        
+        paletacor <- colorBin("RdYlGn", domain = rio2$resultado_tec_aux_enfermagem, bins = 5)  
+        
+        leaflet(data = rio2) %>%
+          addTiles() %>%
+          addPolygons(
+            fillColor = ~paletacor(resultado_tec_aux_enfermagem),
+            weight = 1,
+            color = "black",
+            fillOpacity = 0.7,
+            label = ~paste0(NM_MUN, ": ", round(resultado_tec_aux_enfermagem, 1), " Técnico e auxiliar de enfermagem"),  
+            highlight = highlightOptions(weight = 3, color = "white", bringToFront = TRUE)
+          ) %>%
+          addLegend(pal = paletacor, values = rio2$resultado_tec_aux_enfermagem, opacity = 0.7, title = "Legenda")
+        
+        
+      })  
+      
+       
 }
 
 # Run the application 
