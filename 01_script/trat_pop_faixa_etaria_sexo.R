@@ -62,6 +62,9 @@ pop_rj <- pop_rj %>%
 writexl::write_xlsx(pop_rj,"pop_rj_tratado.xlsx")
 
 
+
+
+
 # pop_rj = dataframe que tem todos o municipios do RJ com a pop por faixa etaria e por sexo ja com as colunas empilhadas
 
 #--------------------------- # Filtrando as faixas etarias 
@@ -103,6 +106,11 @@ pop_rj_filtrado <- pop_rj %>%
                              "4 anos","7 anos","9 anos","10 anos",
                              "11 anos","12 anos","13 anos", "14 anos")) 
       
+
+teste_soma <- pop_rj_filtrado%>%
+  group_by(cod_ibge, municipio) %>%  
+  summarise(populacao = sum(populacao, na.rm = TRUE), .groups = "drop")
+
 #--------------------- dataframe do datalake
 
 #Transformando a linhas da coluna de profissionais em duas colunas
