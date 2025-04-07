@@ -514,12 +514,7 @@ server <- function(input, output) {
     #calculo do slider da populacao
     pop_shy3 <- pop_shy3
     
-    #pop_shy3$populacao <- pop_shy3$populacao * (1 + input$percentual_pop / 100)
-    
     #Fazendo a coluna de minutos 
-    #pop_shy3$tempo_minutos <- pop_shy3$imunizacao * input$percentual_tempo 
-    
-    
     pop_shy3$tempo_minutos <- 0
     pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "Menos de 1 mês"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "Menos de 1 mês"] * input$percentual_tempo1 
     pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "2 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "2 meses"] * input$percentual_tempo2 
@@ -621,7 +616,7 @@ server <- function(input, output) {
     req(dados_reativos3())
     
     pop_shy0 <- dados_reativos3()
-    #print(pop_shy0)
+   
     
     #tranformando no mesmo tipo a coluna do codigo para o lefjoin
     oferta_prof_pivot$codufmun<- as.character(oferta_prof_pivot$codufmun)
@@ -630,7 +625,6 @@ server <- function(input, output) {
     oferta_prof_pivot_2 <- oferta_prof_pivot%>%
       select(-fte40_Enfermeiro,-fte40_tec_aux_enfermagem)
     
-    print(oferta_prof_pivot_2)
     
     #juntando a tabela da aba anterior com a importada do data_lake, ja tratada no script
     pop_shy5 <- left_join(pop_shy0 , oferta_prof_pivot_2, by = c("cod_ibge"="codufmun"))
@@ -694,7 +688,7 @@ server <- function(input, output) {
     
     #juntando o dataframe com os shapefile e o dataframe com os dados de oferta e necessidade da aba anterior
     rio <- RJ2 %>% left_join(pop_shy6, by = c("CD_MUN"="cod_ibge"))
-    print(head(rio))
+  
     
     #Definindo os dados da paleta de cor, bins = quantidade do intervalo dos dados, domain= coluna dos dados
     paletacor <- colorBin(
@@ -721,7 +715,7 @@ server <- function(input, output) {
     req(dados_reativos4())
     
     pop_shy7 <- dados_reativos4() 
-    print(pop_shy7)
+ 
     
     pop_shy7<-pop_shy7%>%
       select(necessidades,oferta_enfermeiro, oferta_tec_aux_enfermagem)
@@ -757,7 +751,7 @@ server <- function(input, output) {
     
     
     rio2 <- RJ2 %>% left_join(pop_shy8, by = c("CD_MUN"="cod_ibge"))
-    print(head(rio2))
+    
     
     paletacor <- colorBin(
       palette = c("#eb0202", "#f2cb05", "#4cdb39"),
