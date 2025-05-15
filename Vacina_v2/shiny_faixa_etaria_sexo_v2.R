@@ -8,6 +8,7 @@
 #
 
 #install.packages("leaflet")
+#install.packages("shinyjs")
 
 #Pacotes necessarios 
 library(shiny)
@@ -19,7 +20,7 @@ library(dplyr)
 library(tidyr)
 library(RColorBrewer)
 library(ggplot2)
-
+library(shinyjs)
 
 #Dataframes utilizados, todos tratados no script trat_pop_faixa_etaria_sexo 
 
@@ -29,15 +30,18 @@ oferta_prof_pivot # dataframe do datalake tratado, com a coluna de enfermeiros e
 
 # Define UI for application 
 ui <- fluidPage(
+
   
   # Application title
+  useShinyjs(), #usado para ocultar a primeira aba
   titlePanel("Vacinação RJ"),
   
   # Sidebar with a slider input for number of bins 
-  tabsetPanel(
-    tabPanel("População por município, sexo e faixa etária",
+  tabsetPanel(id = "abas", #define a aba para ocultar 
+    tabPanel("População por município, sexo e faixa etária",value = "populacao",
              sidebarLayout(
                sidebarPanel(
+                 
                  #Parametros de visualizacao da selecao e dos sliders, titulo,escala,como inicia ao abrir o app...
                  selectInput("municipio1", 
                              "Selecione os municípios:",
@@ -56,11 +60,11 @@ ui <- fluidPage(
                              selected = "Todos", 
                              multiple = TRUE),
                  
-                 sliderInput("percentual",
-                             "População:",
-                             min = 0,
-                             max = 100,
-                             value = 80)
+                 #sliderInput("percentual",
+                             #"População:",
+                             #min = 0,
+                             #max = 100,
+                             #value = 100)
                ),
                
                # Show table
@@ -70,112 +74,226 @@ ui <- fluidPage(
              )
     ),
     
+    tabPanel("Informações",value = "texto",
+             fluidRow(
+               column(12,
+                      h3("Sobre as abas:"),
+                      p(
+                        " Em ",
+                        strong("Taxa de Vacinação por Município, Sexo e Faixa Etária"),
+                        "são aparesentadas a taxa de vacinação populacional, sendo possivel filtar os municipios, o sexo e a faixa etaria de acordo
+                        com a vacina"
+                      ),
+                      p(
+                        "Em",
+                        strong("Tempo de Vacinação"),
+                        "são definidos o tempo total despendido para a vacinação, podendo ser filtrado o município, o sexo e a quantidade de tempo 
+                        para cada vacina de acordo com a faixa etaria e município" 
+                        
+                      ),
+                      p(
+                        "Em",
+                        strong("Necessidades"),
+                        "é calculado a quantidade de profissionais necessários para realizar a vacinação (anual e mensal), podendo 
+                        ser filtrados o percentual do tempo no cuidado à vacinação, o tempo das atividades indiretas, o tempo de trabalho disponível
+                        e o município
+                        " 
+                        
+                      ),
+                      p(
+                        "Em",
+                        strong("Mapas"),
+                        "são apresentados mapas coropléticos segundo a quantidade de profissionais necessários para a vacinação por município
+                        " 
+                        
+                      ),
+                      
+               )
+             )
+    ),
+    
     tabPanel("Taxa de vacinação por município, sexo e faixa etária",
              sidebarLayout(
                sidebarPanel(
+                 #p("texto aqui"),
                  #Parametros de visualizacao da selecao e dos sliders, titulo,escala,como inicia ao abrir o app...
                  selectInput("municipio2", 
-                             "Selecione os municípios:",
+                             "Escolha os municípios que você deseja visualizar:",
                              choices = c("Todos", unique(pop_rj_filtrado$municipio)),  
                              selected = "Todos", 
                              multiple = TRUE),
+                 
+                 
                  selectInput("sexo2", 
-                             "Selecione o sexo:",
+                             "Escolha o sexo que você deseja visualizar:",
                              choices = c("Todos", unique(pop_rj_filtrado$sexo)),  
                              selected = "Todos", 
                              multiple = TRUE),
+                 p("Escolha o percentual da população que você deseja visualizar
+                   de acordo com a dose da vacina"),
                  sliderInput("percentual_pop",
-                             "População:",
+                             "População",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_1",
-                             "BCG:",
+                             "BCG- unica:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_2",
-                             "Hepatite B:",
+                             "Hepatite B - 1 dose:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_3",
-                             "Penta:",
+                             "Penta - 1 dose:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_4",
-                             "Poliomielite VIP:",
+                             "Penta - 2 dose:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_5",
-                             "Pneumo 10v:",
+                             "Penta - 3 dose:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_6",
-                             "VRH:",
+                             "Poliomielite VIP - 1 dose:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_7",
-                             "DT:",
+                             "Poliomielite VIP - 2 dose:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_8",
-                             "Poliomielite VOP:",
+                             "Poliomielite VIP - 3 dose:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_9",
-                             "Meningo C:",
+                             "Pneumo 10v - 1 dose:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_10",
-                             "Tríplice Viral:",
+                             "Pneumo 10v - 2 dose:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_11",
-                             "Treta Viral:",
+                             "Pneumo 10v - 1 dose reforço:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_12",
-                             "Hepatite A:",
+                             "VRH - 1 dose:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_13",
-                             "VFA:",
+                             "VRH - 2 dose:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_14",
-                             "Varicela:",
+                             "DTP - 1 dose reforco:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_15",
-                             "HPV4:",
+                             "DTP - 2 dose reforco:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_16",
-                             "Meningo ACWY:",
+                             "Poliomielite VOP - 1 dose reforco:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_17",
-                             "Covid- 19:",
+                             "Poliomielite VOP - 2 dose reforco:",
                              min = 0,
                              max = 100,
                              value = 80),
                  sliderInput("percentual_18",
-                             "dt/Dupla Adulto:",
+                             "Meningo C - 1 dose:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_19",
+                             "Meningo C - 2 dose:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+               
+                 sliderInput("percentual_20",
+                             "Meningo C - 3 dose:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_21",
+                             "Tríplice Viral - 1 dose:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_22",
+                             "Treta Viral - 1 dose:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_23",
+                             "Hepatite A - 1 dose:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_24",
+                             "VFA - 1 dose:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_25",
+                             "VFA - 2 dose:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_26",
+                             "Varicela - 1 dose:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_27",
+                             "HPV4 - 1 e 2 doses:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_28",
+                             "Meningo ACWY - 1 dose ou reforco:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_29",
+                             "Covid- 19 - 1 dose:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_30",
+                             "Covid- 19 - 2 dose:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_31",
+                             "Covid- 19 - 3 dose:",
+                             min = 0,
+                             max = 100,
+                             value = 80),
+                 sliderInput("percentual_32",
+                             "dt/Dupla Adulto - 1 dose:",
                              min = 0,
                              max = 100,
                              value = 80)
@@ -201,90 +319,26 @@ ui <- fluidPage(
                              selected = "Todos", 
                              multiple = TRUE),
                  sliderInput("percentual_tempo1",
-                             "Tempo de vacinação (minutos) - Menos de 1 mês:",
+                             "Tempo de vacinação (minutos) - Menos de 1 ano:",
                              min = 0,
                              max = 60,
                              value = 30),
                  sliderInput("percentual_tempo2",
-                             "Tempo de vacinação (minutos) - 2 meses:",
+                             "Tempo de vacinação (minutos) - 1 a 4 anos:",
                              min = 0,
                              max = 60,
                              value = 30),
                  sliderInput("percentual_tempo3",
-                             "Tempo de vacinação (minutos) - 3 meses:",
+                             "Tempo de vacinação (minutos) - 7 a 11 anos:",
                              min = 0,
                              max = 60,
                              value = 30),
                  sliderInput("percentual_tempo4",
-                             "Tempo de vacinação (minutos) - 4 meses:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo5",
-                             "Tempo de vacinação (minutos) - 5 meses:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo6",
-                             "Tempo de vacinação (minutos) - 6 meses:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo7",
-                             "Tempo de vacinação (minutos) - 7 meses:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo8",
-                             "Tempo de vacinação (minutos) - 9 meses:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo9",
-                             "Tempo de vacinação (minutos) - 1 ano:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo10",
-                             "Tempo de vacinação (minutos) - 4 anos:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo11",
-                             "Tempo de vacinação (minutos) - 7 anos:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo12",
-                             "Tempo de vacinação (minutos) - 9 anos:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo13",
-                             "Tempo de vacinação (minutos) - 10 anos:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo14",
-                             "Tempo de vacinação (minutos) - 11 anos:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo15",
-                             "Tempo de vacinação (minutos) - 12 anos:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo16",
-                             "Tempo de vacinação (minutos) - 13 anos:",
-                             min = 0,
-                             max = 60,
-                             value = 30),
-                 sliderInput("percentual_tempo17",
-                             "Tempo de vacinação (minutos) - 14 anos:",
+                             "Tempo de vacinação (minutos) - 12 a 14 anos:",
                              min = 0,
                              max = 60,
                              value = 30)
+                 
                  
                ),
                mainPanel(
@@ -304,9 +358,18 @@ ui <- fluidPage(
                  sliderInput("ttd",
                              "TTD:",
                              min = 0,
-                             max = 1700,
-                             value = 1576),
-                 
+                             max = 1900,
+                             value = 1596),
+                 sliderInput("fc_clinico",
+                             "Percentual do tempo no cuidado à vacinação:",
+                             min = 10,
+                             max = 30,
+                             value = 15),
+                 sliderInput("at_ind",
+                             "Atividade indireta:",
+                             min = 10,
+                             max = 30,
+                             value = 15),
                ),
                mainPanel(
                  DTOutput("tabela4") 
@@ -314,57 +377,59 @@ ui <- fluidPage(
              )
     ),
     
-    tabPanel("Oferta",
-             sidebarLayout(
-               sidebarPanel(
+   #-------------------------------------------- retirando os parametros da aba oferta
+   # tabPanel("Oferta",
+             #sidebarLayout(
+               #sidebarPanel(
                  #Parametros de visualizacao da selecao e dos sliders, titulo,escala,como inicia ao abrir o app...
-                 selectInput("municipio5", 
-                             "Selecione os municípios:",
-                             choices = c("Todos", unique(pop_rj_filtrado$municipio)),  
-                             selected = "Todos", 
-                             multiple = TRUE),
-                 sliderInput("at_ind_enf",
-                             "Atividade indireta (Enfermeiro):",
-                             min = 0,
-                             max = 100,
-                             value = 40),
-                 sliderInput("fc_clinico_enf",
-                             "Foco clínico (Enfermeiro):",
-                             min = 0,
-                             max = 100,
-                             value = 10),
-                 sliderInput("at_ind_tec",
-                             "Atividade indireta (Técnico e Auxíliar de Enfermeagem):",
-                             min = 0,
-                             max = 100,
-                             value = 40),
-                 sliderInput("fc_clinico_tec",
-                             "Foco clínico (Técnico e Auxíliar de Enfermeagem):",
-                             min = 0,
-                             max = 100,
-                             value = 10)
+                 #selectInput("municipio5", 
+                             #"Selecione os municípios:",
+                             #choices = c("Todos", unique(pop_rj_filtrado$municipio)),  
+                             #selected = "Todos", 
+                             #multiple = TRUE),
+                # sliderInput("at_ind_enf",
+                             #"Atividade indireta (Enfermeiro):",
+                             #min = 0,
+                             #max = 100,
+                             #value = 40),
+                 #sliderInput("fc_clinico_enf",
+                             #"Foco clínico (Enfermeiro):",
+                             #min = 0,
+                             #max = 100,
+                             #value = 10),
+                 #sliderInput("at_ind_tec",
+                             #"Atividade indireta (Técnico e Auxíliar de Enfermeagem):",
+                             #min = 0,
+                             #max = 100,
+                             #value = 40),
+                 #sliderInput("fc_clinico_tec",
+                             #"Foco clínico (Técnico e Auxíliar de Enfermeagem):",
+                             #min = 0,
+                             #max = 100,
+                             #value = 10)
                  
-               ),
-               mainPanel(
-                 DTOutput("tabela5"),
-               )
-             )
-    ),
+              # ),
+              # mainPanel(
+                # DTOutput("tabela5"),
+              # )
+             #)
+   # ),
+   
     tabPanel("Mapas",
              #sidebarLayout(
              #sidebarPanel(
              
              mainPanel(
                fluidRow(
-                 column(6, tags$h4("Enfermeiros"),leafletOutput("mapa1", height = 500, width = 500)), #mapa 1
+                 column(6, tags$h4("Necessidade anual"),leafletOutput("mapa1", height = 500, width = 500)), #mapa 1
                  
-                 column(6,tags$h4("Gráfico Necessidade e Oferta de Profissionais"),plotOutput("graficoNF", height = 500, width = 600)
-                 )
+                 #column(6,tags$h4("Gráfico Necessidade de Profissionais"),plotOutput("graficoNF", height = 500, width = 600)
+                 #)
                ),
                
-               fluidRow(
-                 column(6,tags$h4("Técnico e Auxiliar de Enfermagem"),leafletOutput("mapa2", height = 500, width = 500)
-                 )
+               #fluidRow(
+                 column(6,tags$h4("Necessidade Mensal"),leafletOutput("mapa2", height = 500, width = 500)
+                # )
                  
                  #column(6,tags$h4("Gráfico de Técnico e Auxiliar de Enfermagem"),plotOutput("graficoTecnico", height = 500)
                  
@@ -376,12 +441,18 @@ ui <- fluidPage(
 #-------------------------------------
 server <- function(input, output) {
   
+  hide(selector = 'a[data-value="populacao"]') #identifica a aba para ser ocultada 
+  
   #Essa funcao serve para integrar as tabelas nas outras abas e fazer com que mudando uma, modifique a proxima aba
   dados_reativos <- reactiveVal()
   dados_reativos2 <- reactiveVal()
   dados_reativos3 <- reactiveVal()
   dados_reativos4 <- reactiveVal()
   
+  
+  observe({
+    updateTabsetPanel(inputId = "abas", selected = "texto")
+  })
   
   
   output$tabela1 <- renderDT({
@@ -408,7 +479,7 @@ server <- function(input, output) {
     }
     
     #Calculo do slider da populacao
-    pop_shy$populacao <- pop_shy$populacao * (1 + input$percentual / 100)
+    #pop_shy$populacao <- pop_shy$populacao * (1 + input$percentual / 100)
     
     pop_shy%>% #retirando o cod_ibge da visualizacao da tabela
       select(-cod_ibge)
@@ -431,8 +502,8 @@ server <- function(input, output) {
                                ifelse(pop_shy2$faixa_etaria == "2 meses", "1Penta,Poliomielite VIP,Pneumo 10v,VRH",
                                       ifelse(pop_shy2$faixa_etaria == "4 meses","2Penta,Poliomielite VIP,Pneumo 10v,VRH",
                                              ifelse(pop_shy2$faixa_etaria == "6 meses","Penta,Poliomielite VIP,Covid-19",
-                                                    ifelse(pop_shy2$faixa_etaria == "1 ano","DT,Poliomielite VOP,Pneumo 10v,Meningo C,Tríplice Viral,Treta Viral,Hepatite A",
-                                                           ifelse(pop_shy2$faixa_etaria == "4 anos","DT,Poliomielite VOP,VFA,Varicela",
+                                                    ifelse(pop_shy2$faixa_etaria == "1 ano","DTP,Poliomielite VOP,Pneumo 10v,Meningo C,Tríplice Viral,Treta Viral,Hepatite A",
+                                                           ifelse(pop_shy2$faixa_etaria == "4 anos","DTP,Poliomielite VOP,VFA,Varicela",
                                                                   ifelse(pop_shy2$faixa_etaria == "3 meses","1Meningo C",
                                                                          ifelse(pop_shy2$faixa_etaria == "5 meses","2Meningo C",
                                                                                 ifelse(pop_shy2$faixa_etaria == "9 anos","1HPV4",
@@ -453,26 +524,90 @@ server <- function(input, output) {
       mutate(vacinas = gsub("^\\d+", "", vacinas))
     
     
+    pop_shy2 <- pop_shy2 %>%
+      mutate(vacinas = case_when(
+        vacinas == "BCG" & faixa_etaria == "Menos de 1 mês" ~ paste(vacinas, "- unica"),
+        vacinas == "Hepatite B" & faixa_etaria == "Menos de 1 mês" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "Penta" & faixa_etaria == "2 meses" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "Penta" & faixa_etaria == "4 meses" ~ paste(vacinas, "- 2 dose"),
+        vacinas == "Penta" & faixa_etaria == "6 meses" ~ paste(vacinas, "- 3 dose"),
+        vacinas == "Meningo C" & faixa_etaria == "3 meses" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "Meningo C" & faixa_etaria == "5 meses" ~ paste(vacinas, "- 2 dose"),
+        vacinas == "Meningo C" & faixa_etaria == "1 ano" ~ paste(vacinas, "- 1 dose reforco"),
+        vacinas == "Meningo ACWY" & faixa_etaria == "11 anos" ~ paste(vacinas, "- 1 dose ou reforco"),
+        vacinas == "Meningo ACWY" & faixa_etaria == "12 anos" ~ paste(vacinas, "- 1 dose ou reforco"),
+        vacinas == "Meningo ACWY" & faixa_etaria == "13 anos" ~ paste(vacinas, "- 1 dose ou reforco"),
+        vacinas == "Meningo ACWY" & faixa_etaria == "14 anos" ~ paste(vacinas, "- 1 dose ou reforco"),
+        vacinas == "Pneumo 10v" & faixa_etaria == "2 meses" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "Pneumo 10v" & faixa_etaria == "4 meses" ~ paste(vacinas, "- 2 dose"),
+        vacinas == "Pneumo 10v" & faixa_etaria == "1 ano" ~ paste(vacinas, "- 1 dose reforco"),
+        vacinas == "VRH" & faixa_etaria == "2 meses" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "VRH" & faixa_etaria == "4 meses" ~ paste(vacinas, "- 2 dose"),
+        vacinas == "VFA" & faixa_etaria == "9 meses" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "VFA" & faixa_etaria == "4 anos" ~ paste(vacinas, "- 2 dose"),
+        vacinas == "Covid-19" & faixa_etaria == "6 meses" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "Covid-19" & faixa_etaria == "7 meses" ~ paste(vacinas, "- 2 dose"),
+        vacinas == "Covid-19" & faixa_etaria == "9 meses" ~ paste(vacinas, "- 3 dose"),
+        vacinas == "Varicela" & faixa_etaria == "4 anos" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "dt/Dupla Adulto" & faixa_etaria == "7 anos" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "HPV4" & faixa_etaria == "9 anos" ~ paste(vacinas, "- 1 e 2 doses"),
+        vacinas == "HPV4" & faixa_etaria == "10 anos" ~ paste(vacinas, "- 1 e 2 doses"),
+        vacinas == "HPV4" & faixa_etaria == "11 anos" ~ paste(vacinas, "- 1 e 2 doses"),
+        vacinas == "HPV4" & faixa_etaria == "12 anos" ~ paste(vacinas, "- 1 e 2 doses"),
+        vacinas == "HPV4" & faixa_etaria == "13 anos" ~ paste(vacinas, "- 1 e 2 doses"),
+        vacinas == "HPV4" & faixa_etaria == "14 anos" ~ paste(vacinas, "- 1 e 2 doses"),
+        vacinas == "Tríplice Viral" & faixa_etaria == "1 ano" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "Treta Viral" & faixa_etaria == "1 ano" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "Hepatite A" & faixa_etaria == "1 ano" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "Poliomielite VIP" & faixa_etaria == "2 meses" ~ paste(vacinas, "- 1 dose"),
+        vacinas == "Poliomielite VIP" & faixa_etaria == "4 meses" ~ paste(vacinas, "- 2 dose"),
+        vacinas == "Poliomielite VIP" & faixa_etaria == "6 meses" ~ paste(vacinas, "- 3 dose"),
+        vacinas == "Poliomielite VOP" & faixa_etaria == "1 ano" ~ paste(vacinas, "- 1 dose reforco"),
+        vacinas == "Poliomielite VOP" & faixa_etaria == "4 anos" ~ paste(vacinas, "- 2 dose reforco"),
+        vacinas == "DTP" & faixa_etaria == "1 ano" ~ paste(vacinas, "- 1 dose reforco"),
+        vacinas == "DTP" & faixa_etaria == "4 anos" ~ paste(vacinas, "- 2 dose reforco"),
+        
+        
+        TRUE ~ vacinas
+      ))
+    
+  
     #Fazendo a coluna imunizacao e fazendo o slider para cada grupo de vacinas 
     pop_shy2$imunizacao <- 0
-    pop_shy2$imunizacao[pop_shy2$vacinas == "BCG"] <- pop_shy2$populacao[pop_shy2$vacinas == "BCG"] * (input$percentual_1 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "Hepatite B"] <- pop_shy2$populacao[pop_shy2$vacinas == "Hepatite B"] * (input$percentual_2 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "Penta"] <- pop_shy2$populacao[pop_shy2$vacinas == "Penta"] * (input$percentual_3 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "Poliomielite VIP"] <- pop_shy2$populacao[pop_shy2$vacinas == "Poliomielite VIP"] * (input$percentual_4 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "Pneumo 10v"] <- pop_shy2$populacao[pop_shy2$vacinas == "Pneumo 10v"] * (input$percentual_5 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "VRH"] <- pop_shy2$populacao[pop_shy2$vacinas == "VRH"] * (input$percentual_6 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "DT"] <- pop_shy2$populacao[pop_shy2$vacinas == "DT"] * (input$percentual_7 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "Poliomielite VOP"] <- pop_shy2$populacao[pop_shy2$vacinas == "Poliomielite VOP"] * (input$percentual_8 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "Meningo C"] <- pop_shy2$populacao[pop_shy2$vacinas == "Meningo C"] * (input$percentual_9 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "Tríplice Viral"] <- pop_shy2$populacao[pop_shy2$vacinas == "Tríplice Viral"] * (input$percentual_10 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "Treta Viral"] <- pop_shy2$populacao[pop_shy2$vacinas == "Treta Viral"] * (input$percentual_11 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "Hepatite A"] <- pop_shy2$populacao[pop_shy2$vacinas == "Hepatite A"] * (input$percentual_12 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "VFA"] <- pop_shy2$populacao[pop_shy2$vacinas == "VFA"] * (input$percentual_13 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "Varicela"] <- pop_shy2$populacao[pop_shy2$vacinas == "Varicela"] * (input$percentual_14 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "HPV4"] <- pop_shy2$populacao[pop_shy2$vacinas == "HPV4"] * (input$percentual_15 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "Meningo ACWY"] <- pop_shy2$populacao[pop_shy2$vacinas == "Meningo ACWY"] * (input$percentual_16 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "Covid-19"] <- pop_shy2$populacao[pop_shy2$vacinas == "Covid-19"] * (input$percentual_17 / 100)
-    pop_shy2$imunizacao[pop_shy2$vacinas == "dt/Dupla Adulto"] <- pop_shy2$populacao[pop_shy2$vacinas == "dt/Dupla Adulto"] * (input$percentual_18 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "BCG - unica"] <- pop_shy2$populacao[pop_shy2$vacinas == "BCG - unica"] * (input$percentual_1 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Hepatite B - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Hepatite B - 1 dose"] * (input$percentual_2 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Penta - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Penta - 1 dose"] * (input$percentual_3 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Penta - 2 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Penta - 2 dose"] * (input$percentual_4 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Penta - 3 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Penta - 3 dose"] * (input$percentual_5 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Poliomielite VIP - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Poliomielite VIP - 1 dose"] * (input$percentual_6 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Poliomielite VIP - 2 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Poliomielite VIP - 2 dose"] * (input$percentual_7 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Poliomielite VIP - 3 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Poliomielite VIP - 3 dose"] * (input$percentual_8 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Pneumo 10v - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Pneumo 10v - 1 dose"] * (input$percentual_9 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Pneumo 10v - 2 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Pneumo 10v - 2 dose"] * (input$percentual_10 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Pneumo 10v - 1 dose reforco"] <- pop_shy2$populacao[pop_shy2$vacinas == "Pneumo 10v - 1 dose reforco"] * (input$percentual_11 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "VRH - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "VRH - 1 dose"] * (input$percentual_12 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "VRH - 2 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "VRH - 2 dose"] * (input$percentual_13 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "DTP - 1 dose reforco"] <- pop_shy2$populacao[pop_shy2$vacinas == "DTP - 1 dose reforco"] * (input$percentual_14 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "DTP - 2 dose reforco"] <- pop_shy2$populacao[pop_shy2$vacinas == "DTP - 2 dose reforco"] * (input$percentual_15 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Poliomielite VOP - 1 dose reforco"] <- pop_shy2$populacao[pop_shy2$vacinas == "Poliomielite VOP - 1 dose reforco"] * (input$percentual_16 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Poliomielite VOP - 2 dose reforco"] <- pop_shy2$populacao[pop_shy2$vacinas == "Poliomielite VOP - 2 dose reforco"] * (input$percentual_17 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Meningo C - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Meningo C - 1 dose"] * (input$percentual_18 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Meningo C - 2 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Meningo C - 2 dose"] * (input$percentual_19 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Meningo C - 1 dose reforco"] <- pop_shy2$populacao[pop_shy2$vacinas == "Meningo C - 1 dose reforco"] * (input$percentual_20 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Tríplice Viral - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Tríplice Viral - 1 dose"] * (input$percentual_21 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Treta Viral - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Treta Viral - 1 dose"] * (input$percentual_22 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Hepatite A - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Hepatite A - 1 dose"] * (input$percentual_23 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "VFA - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "VFA - 1 dose"] * (input$percentual_24 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "VFA - 2 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "VFA - 2 dose"] * (input$percentual_25 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Varicela - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Varicela - 1 dose"] * (input$percentual_26 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "HPV4 - 1 e 2 doses"] <- pop_shy2$populacao[pop_shy2$vacinas == "HPV4 - 1 e 2 doses"] * (input$percentual_27 / 100)
+    
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Meningo ACWY - 1 dose ou reforco"] <- pop_shy2$populacao[pop_shy2$vacinas == "Meningo ACWY - 1 dose ou reforco"] * (input$percentual_28 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Covid-19 - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Covid-19 - 1 dose"] * (input$percentual_29 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Covid-19 - 2 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Covid-19 - 2 dose"] * (input$percentual_30 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "Covid-19 - 3 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "Covid-19 - 3 dose"] * (input$percentual_31 / 100)
+    pop_shy2$imunizacao[pop_shy2$vacinas == "dt/Dupla Adulto - 1 dose"] <- pop_shy2$populacao[pop_shy2$vacinas == "dt/Dupla Adulto - 1 dose"] * (input$percentual_32 / 100)
+    
     
     
     pop_shy2<-pop_shy2 %>%
@@ -517,22 +652,22 @@ server <- function(input, output) {
     #Fazendo a coluna de minutos 
     pop_shy3$tempo_minutos <- 0
     pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "Menos de 1 mês"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "Menos de 1 mês"] * input$percentual_tempo1 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "2 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "2 meses"] * input$percentual_tempo2 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "3 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "3 meses"] * input$percentual_tempo3 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "4 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "4 meses"] * input$percentual_tempo4 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "5 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "5 meses"] * input$percentual_tempo5 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "6 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "6 meses"] * input$percentual_tempo6 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "7 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "7 meses"] * input$percentual_tempo7 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "9 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "9 meses"] * input$percentual_tempo8 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "1 ano"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "1 ano"] * input$percentual_tempo9 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "4 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "4 anos"] * input$percentual_tempo10 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "7 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "7 anos"] * input$percentual_tempo11 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "9 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "9 anos"] * input$percentual_tempo12 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "10 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "10 anos"] * input$percentual_tempo13 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "11 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "11 anos"] * input$percentual_tempo14 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "12 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "12 anos"] * input$percentual_tempo15 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "13 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "13 anos"] * input$percentual_tempo16 
-    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "14 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "14 anos"] * input$percentual_tempo17 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "2 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "2 meses"] * input$percentual_tempo1 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "3 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "3 meses"] * input$percentual_tempo1 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "4 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "4 meses"] * input$percentual_tempo1 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "5 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "5 meses"] * input$percentual_tempo1 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "6 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "6 meses"] * input$percentual_tempo1 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "7 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "7 meses"] * input$percentual_tempo1 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "9 meses"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "9 meses"] * input$percentual_tempo1 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "1 ano"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "1 ano"] * input$percentual_tempo2 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "4 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "4 anos"] * input$percentual_tempo2 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "7 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "7 anos"] * input$percentual_tempo3 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "9 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "9 anos"] * input$percentual_tempo3 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "10 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "10 anos"] * input$percentual_tempo3 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "11 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "11 anos"] * input$percentual_tempo3 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "12 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "12 anos"] * input$percentual_tempo4 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "13 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "13 anos"] * input$percentual_tempo4 
+    pop_shy3$tempo_minutos[pop_shy3$faixa_etaria == "14 anos"] <- pop_shy3$imunizacao[pop_shy3$faixa_etaria == "14 anos"] * input$percentual_tempo4 
       
       
     pop_shy3$tempo_horas <- pop_shy3$tempo_minutos / 60 #transformando a coluna minutos em horas
@@ -590,8 +725,13 @@ server <- function(input, output) {
     
     pop_shy4_2_1 <-pop_shy4_2_1 %>%
       mutate(
+        necessidades = (necessidades * 100) / input$fc_clinico, #Definindo os paramentros dos sliders foco clinico 
+        necessidades = (necessidades * 100) / input$at_ind, #Definindo os paramentros dos sliders atividade indireta
         total_horas = round(total_horas, 2),
-        necessidades = round(necessidades, 2))
+        necessidades = round(necessidades, 2),
+        necessidade_mensal = round(necessidades / 12, 2) #colocando nova coluca para calcular necessidade mensal
+        )
+    
     
     dados_reativos3(pop_shy4_2_1)#acionando os dados_reativos antes de retirar o cod_ibge pq vais ser necessario para o leftjoin da proxima aba
     
@@ -612,79 +752,82 @@ server <- function(input, output) {
     
   })
   
-  output$tabela5 <- renderDT({
-    req(dados_reativos3())
+  #---------------------------------------------- retirando a execução da aba oferta
+  #output$tabela5 <- renderDT({
     
-    pop_shy0 <- dados_reativos3()
+    
+    #req(dados_reativos3())
+    
+    #pop_shy0 <- dados_reativos3()
    
     
     #tranformando no mesmo tipo a coluna do codigo para o lefjoin
-    oferta_prof_pivot$codufmun<- as.character(oferta_prof_pivot$codufmun)
+    #oferta_prof_pivot$codufmun<- as.character(oferta_prof_pivot$codufmun)
     
     #Tirando a coluna de oferta calculada no data lake para fazer ela dinamica na aba
-    oferta_prof_pivot_2 <- oferta_prof_pivot%>%
-      select(-fte40_Enfermeiro,-fte40_tec_aux_enfermagem)
+    #oferta_prof_pivot_2 <- oferta_prof_pivot%>%
+      #select(-fte40_Enfermeiro,-fte40_tec_aux_enfermagem)
     
     
     #juntando a tabela da aba anterior com a importada do data_lake, ja tratada no script
-    pop_shy5 <- left_join(pop_shy0 , oferta_prof_pivot_2, by = c("cod_ibge"="codufmun"))
+    #pop_shy5 <- left_join(pop_shy0 , oferta_prof_pivot_2, by = c("cod_ibge"="codufmun"))
     
     #Definindo os paramentros dos sliders de atividade indireta e foco clinico 
-    pop_shy5$CH_Enfermeiro <- pop_shy5$CH_Enfermeiro - input$at_ind_enf
-    pop_shy5$CH_Enfermeiro <- pop_shy5$CH_Enfermeiro - input$fc_clinico_enf
+    #pop_shy5$CH_Enfermeiro <- pop_shy5$CH_Enfermeiro - input$at_ind_enf
+    #pop_shy5$CH_Enfermeiro <- pop_shy5$CH_Enfermeiro - input$fc_clinico_enf
     
-    pop_shy5$CH_tec_aux_enfermagem <- pop_shy5$CH_tec_aux_enfermagem - input$at_ind_tec
-    pop_shy5$CH_tec_aux_enfermagem <- pop_shy5$CH_tec_aux_enfermagem - input$fc_clinico_tec
+    #pop_shy5$CH_tec_aux_enfermagem <- pop_shy5$CH_tec_aux_enfermagem - input$at_ind_tec
+    #pop_shy5$CH_tec_aux_enfermagem <- pop_shy5$CH_tec_aux_enfermagem - input$fc_clinico_tec
     
     #Fazendo novamente o calculo da oferta para colocar como uma coluna que modifica com a carga horaria
-    pop_shy5<-pop_shy5%>%
-      mutate(
-        oferta_enfermeiro = CH_Enfermeiro / 40,
-        oferta_tec_aux_enfermagem = CH_tec_aux_enfermagem / 40
-      )
+    #pop_shy5<-pop_shy5%>%
+      #mutate(
+        #oferta_enfermeiro = CH_Enfermeiro / 40,
+        #oferta_tec_aux_enfermagem = CH_tec_aux_enfermagem / 40
+      #)
     
     
     #Fazendo a coluna de resultado enfermeiro e resultado Tec. e Aux
-    pop_shy5$resultado_enfermeiro <- pop_shy5$oferta_enfermeiro - pop_shy5$necessidades 
-    pop_shy5$resultado_tec_aux_enfermagem <- pop_shy5$oferta_tec_aux_enfermagem - pop_shy5$necessidades
+    #pop_shy5$resultado_enfermeiro <- pop_shy5$oferta_enfermeiro - pop_shy5$necessidades 
+    #pop_shy5$resultado_tec_aux_enfermagem <- pop_shy5$oferta_tec_aux_enfermagem - pop_shy5$necessidades
     
     
     #Fazendo a coluna de percentual de enfermeiro e de Tec. e Aux
-    pop_shy5$resultado_perc_enfermeiro <- (pop_shy5$oferta_enfermeiro/pop_shy5$necessidades)*100
-    pop_shy5$resultado_perc_tec_aux_enfermagem <- (pop_shy5$oferta_tec_aux_enfermagem/pop_shy5$necessidades)*100
+    #pop_shy5$resultado_perc_enfermeiro <- (pop_shy5$oferta_enfermeiro/pop_shy5$necessidades)*100
+    #pop_shy5$resultado_perc_tec_aux_enfermagem <- (pop_shy5$oferta_tec_aux_enfermagem/pop_shy5$necessidades)*100
     
     #aredondando os valores para 2 casas decimais
-    pop_shy5 <-pop_shy5 %>%
-      mutate(
-        resultado_enfermeiro = round(resultado_enfermeiro, 2),
-        resultado_tec_aux_enfermagem = round(resultado_tec_aux_enfermagem, 2),
-        resultado_perc_enfermeiro = round(resultado_perc_enfermeiro, 2),
-        resultado_perc_tec_aux_enfermagem = round(resultado_perc_tec_aux_enfermagem, 2))
+    #pop_shy5 <-pop_shy5 %>%
+      #mutate(
+        #resultado_enfermeiro = round(resultado_enfermeiro, 2),
+        #resultado_tec_aux_enfermagem = round(resultado_tec_aux_enfermagem, 2),
+        #resultado_perc_enfermeiro = round(resultado_perc_enfermeiro, 2),
+        #resultado_perc_tec_aux_enfermagem = round(resultado_perc_tec_aux_enfermagem, 2))
     
-    dados_reativos4(pop_shy5) #acionando os dados_reativos antes de retirar o cod_ibge pq vais ser necessario para o leftjoin da proxima aba
+    #dados_reativos4(pop_shy5) #acionando os dados_reativos antes de retirar o cod_ibge pq vais ser necessario para o leftjoin da proxima aba
     
     
-    pop_shy5_1<- pop_shy5%>% #retirando o cod_ibge da visualizacao da tabela e retirando a duplicada depois do lefjoin
-      rename(municipio = municipio.x)%>%
-      select(-municipio.y, -cod_ibge)
+    #pop_shy5_1<- pop_shy5%>% #retirando o cod_ibge da visualizacao da tabela e retirando a duplicada depois do lefjoin
+      #rename(municipio = municipio.x)%>%
+      #select(-municipio.y, -cod_ibge)
     
-    if ("Todos" %in% input$municipio5) {
-      pop_shy5_1 <- pop_shy5_1
-    } else {
-      pop_shy5_1 <- subset(pop_shy5_1, municipio %in% input$municipio5) 
+    #if ("Todos" %in% input$municipio5) {
+      #pop_shy5_1 <- pop_shy5_1
+    #} else {
+      #pop_shy5_1 <- subset(pop_shy5_1, municipio %in% input$municipio5) 
       
-    }
+    #}
     
-    pop_shy5_1
+    #pop_shy5_1
     
     
-  })   #Parametros do mapa 1
+  #})   #Parametros do mapa 1
   
   output$mapa1 <- renderLeaflet({
     
-    req(dados_reativos4())
+    req(dados_reativos3())
     
-    pop_shy6 <- dados_reativos4() 
+    pop_shy6 <- dados_reativos3() 
     
     #juntando o dataframe com os shapefile e o dataframe com os dados de oferta e necessidade da aba anterior
     rio <- RJ2 %>% left_join(pop_shy6, by = c("CD_MUN"="cod_ibge"))
@@ -693,83 +836,85 @@ server <- function(input, output) {
     #Definindo os dados da paleta de cor, bins = quantidade do intervalo dos dados, domain= coluna dos dados
     paletacor <- colorBin(
       palette = c("#eb0202", "#f2cb05", "#4cdb39"),
-      domain = rio$resultado_enfermeiro,      
+      domain = rio$necessidades,      
       bins = c(-Inf,  0, 50, 150, 300, 500, 1000, Inf),     
       na.color = "gray")
     
     leaflet(data = rio) %>%
       addTiles() %>%
       addPolygons(
-        fillColor = ~paletacor(resultado_enfermeiro),#cores do municipio de acordo com a funcao paletacor e dados da coluna indicada
+        fillColor = ~paletacor(necessidades),#cores do municipio de acordo com a funcao paletacor e dados da coluna indicada
         weight = 1, #espessura das linhas 
         color = "black", #cor das linhas em volta dos municipios
         fillOpacity = 0.6, #opacidade da cor dos municipios
-        label = ~paste0(NM_MUN, ": ", round(resultado_enfermeiro, 1), " Enfermeiros"), #dados que aparecem no quadro quando passa o mouse 
+        label = ~paste0(NM_MUN, ": ", round(necessidades, 1), " Profissionais"), #dados que aparecem no quadro quando passa o mouse 
         highlight = highlightOptions(weight = 3, color = "white", bringToFront = TRUE)#parametros de quando o municipio e destacado ao passar o mouse
       ) %>%
-      addLegend(pal = paletacor, values = rio$resultado_enfermeiro, opacity = 0.5, title = "Legenda")#parametros da legenda 
+      addLegend(pal = paletacor, values = rio$necessidades, opacity = 0.5, title = "Legenda")#parametros da legenda 
     
   })
-  output$graficoNF <- renderPlot({
+  
+  #---------------------------------------------- retirando a execução do grafico 2   
+  #output$graficoNF <- renderPlot({
     
-    req(dados_reativos4())
+    #req(dados_reativos4())
     
-    pop_shy7 <- dados_reativos4() 
+    #pop_shy7 <- dados_reativos4() 
  
     
-    pop_shy7<-pop_shy7%>%
-      select(necessidades,oferta_enfermeiro, oferta_tec_aux_enfermagem)
+    #pop_shy7<-pop_shy7%>%
+      #select(necessidades,oferta_enfermeiro, oferta_tec_aux_enfermagem)
     
-    soma_enfermeiro <- sum(pop_shy7$oferta_enfermeiro, na.rm = TRUE)
-    soma_necessidade <- sum(pop_shy7$necessidades, na.rm = TRUE)
-    soma_tec <- sum(pop_shy7$oferta_tec_aux_enfermagem, na.rm = TRUE)
+    #soma_enfermeiro <- sum(pop_shy7$oferta_enfermeiro, na.rm = TRUE)
+    #soma_necessidade <- sum(pop_shy7$necessidades, na.rm = TRUE)
+    #soma_tec <- sum(pop_shy7$oferta_tec_aux_enfermagem, na.rm = TRUE)
     
     # Criando o gráfico de barras com as somas
-    ggplot(data = data.frame(Metrica = c("Necessidade", "Oferta Enfermeiro", "Oferta Téc/Aux. Enfermagem"),
-                             Valor = c(soma_necessidade, soma_enfermeiro, soma_tec)),
-           aes(x = Metrica, y = Valor,fill = Metrica)) +
-      geom_bar(stat = "identity") +
-      labs(x = NULL, y = NULL, fill = NULL) +
-      geom_text(aes(label = round(Valor, 1)), vjust = -0.5, size = 5) +
-      scale_fill_manual(values = c("#eb0202", "#4cdb39", "#088c2c")) + # Cor das barras
-      theme_minimal()+
-      theme(
-        axis.text.x = element_blank(),  # Tamanho dos textos do eixo X
-        axis.text.y = element_text(size = 15),  # Tamanho dos textos do eixo Y
-        legend.text = element_text(size = 15),  # Tamanho do texto da legenda
+    #ggplot(data = data.frame(Metrica = c("Necessidade", "Oferta Enfermeiro", "Oferta Téc/Aux. Enfermagem"),
+                             #Valor = c(soma_necessidade, soma_enfermeiro, soma_tec)),
+           #aes(x = Metrica, y = Valor,fill = Metrica)) +
+      #geom_bar(stat = "identity") +
+      #labs(x = NULL, y = NULL, fill = NULL) +
+      #geom_text(aes(label = round(Valor, 1)), vjust = -0.5, size = 5) +
+      #scale_fill_manual(values = c("#eb0202", "#4cdb39", "#088c2c")) + # Cor das barras
+      #theme_minimal()+
+      #theme(
+        #axis.text.x = element_blank(),  # Tamanho dos textos do eixo X
+        #axis.text.y = element_text(size = 15),  # Tamanho dos textos do eixo Y
+        #legend.text = element_text(size = 15),  # Tamanho do texto da legenda
         
-      )
+      #)
     
-    
-  })  #Parametros do mapa 2
+ #---------------------------------------------- retirando a execução do mapa 2   
+  #})  #Parametros do mapa 2
   
   output$mapa2 <- renderLeaflet({
     
-    req(dados_reativos4())
+    req(dados_reativos3())
     
-    pop_shy8 <- dados_reativos4() 
+    pop_shy8 <- dados_reativos3() 
     
     
     rio2 <- RJ2 %>% left_join(pop_shy8, by = c("CD_MUN"="cod_ibge"))
     
     
-    paletacor <- colorBin(
+      paletacor <- colorBin(
       palette = c("#eb0202", "#f2cb05", "#4cdb39"),
-      domain = rio2$resultado_tec_aux_enfermagem,      
+      domain = rio2$necessidade_mensal,      
       bins = c(-Inf, 0, 50, 150, 300, 500, 1000, Inf),     
       na.color = "gray")
     
     leaflet(data = rio2) %>%
       addTiles() %>%
       addPolygons(
-        fillColor = ~paletacor(resultado_tec_aux_enfermagem),
+        fillColor = ~paletacor(necessidade_mensal),
         weight = 1,
         color = "black",
         fillOpacity = 0.7,
-        label = ~paste0(NM_MUN, ": ", round(resultado_tec_aux_enfermagem, 1), " Técnico e auxiliar de enfermagem"),  
+        label = ~paste0(NM_MUN, ": ", round(necessidade_mensal, 1), "Profissionais"),  
         highlight = highlightOptions(weight = 3, color = "white", bringToFront = TRUE)
       ) %>%
-      addLegend(pal = paletacor, values = rio2$resultado_tec_aux_enfermagem, opacity = 0.7, title = "Legenda")
+      addLegend(pal = paletacor, values = rio2$necessidade_mensal, opacity = 0.7, title = "Legenda")
     
   }) 
   
