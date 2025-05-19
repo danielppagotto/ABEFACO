@@ -77,34 +77,59 @@ ui <- fluidPage(
     tabPanel("Informações",value = "texto",
              fluidRow(
                column(12,
-                      h3("Sobre as abas:"),
+                      h3("Sobre as Guias:"),
                       p(
                         " Em ",
+                        
                         strong("Taxa de Vacinação por Município, Sexo e Faixa Etária"),
-                        "são aparesentadas a taxa de vacinação populacional, sendo possivel filtar os municipios, o sexo e a faixa etaria de acordo
-                        com a vacina"
+                        
+                        "são apresentadas a taxa de vacinação populacional, sendo possível filtrar por municípios, sexo e faixa etaria de acordo
+                        
+                        com cada tipo de vacina;"
+                        
                       ),
                       p(
                         "Em",
+                        
                         strong("Tempo de Vacinação"),
-                        "são definidos o tempo total despendido para a vacinação, podendo ser filtrado o município, o sexo e a quantidade de tempo 
-                        para cada vacina de acordo com a faixa etaria e município" 
+                        
+                        "são definidos o tempo total despendido para a vacinação, podendo ser filtrado por município, sexo e quantidade de tempo 
+                        
+                        que leva para aplicar cada tipo de vacina, isso de acordo com a faixa etaria;" 
                         
                       ),
                       p(
                         "Em",
+                        
                         strong("Necessidades"),
-                        "é calculado a quantidade de profissionais necessários para realizar a vacinação (anual e mensal), podendo 
-                        ser filtrados o percentual do tempo no cuidado à vacinação, o tempo das atividades indiretas, o tempo de trabalho disponível
-                        e o município
-                        " 
+                        
+                        "calcula-se a quantidade de profissionais necessários para a aplicação da vacinação. Nela, é possível 
+                        
+                        filtrar por",
+                        
+                        em("município e tempo de trabalho disponível"), 
+                           
+                        "e pela demandas dos profissionais como",
+                        
+                        em("percentual do tempo no cuidado à vacinação e 
+                        
+                        tempo das atividades indiretas"), 
+                           
+                        "para que o número de profissionais calculados sejam compatíveis com a carga de trabalho;"
+                        
                         
                       ),
                       p(
                         "Em",
+                        
                         strong("Mapas"),
-                        "são apresentados mapas coropléticos segundo a quantidade de profissionais necessários para a vacinação por município
-                        " 
+                        
+                        "são apresentados", 
+                        
+                        em("mapas coropléticos"),
+                        
+                        "segundo a quantidade de profissionais necessários para a vacinação por município."
+                        
                         
                       ),
                       
@@ -129,8 +154,8 @@ ui <- fluidPage(
                              choices = c("Todos", unique(pop_rj_filtrado$sexo)),  
                              selected = "Todos", 
                              multiple = TRUE),
-                 p("Escolha o percentual da população que você deseja visualizar
-                   de acordo com a dose da vacina"),
+                 #p("Escolha o percentual da população que você deseja visualizar
+                   #de acordo com a dose da vacina"),
                  sliderInput("percentual_pop",
                              "População",
                              min = 0,
